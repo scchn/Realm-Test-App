@@ -1,0 +1,8 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## User settings
+xcuserdata/
+xcshareddata/

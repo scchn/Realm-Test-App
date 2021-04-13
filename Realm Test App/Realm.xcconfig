@@ -1,0 +1,12 @@
+//
+//  Realm.xcconfig
+//  Realm Test App
+//
+//  Created by scchn on 2021/4/14.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// ===== RESET_DB =====
+//OTHER_SWIFT_FLAGS = $(inherited) -DRESET_DB;
