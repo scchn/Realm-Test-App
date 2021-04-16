@@ -75,7 +75,27 @@ let mainRealm: Realm = {
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let users = ThreadSafeReference(to: mainRealm.objects(User.self))
         
+        DispatchQueue.global(qos: .background).async {
+            // realm.refresh()
+            do {
+                let realm = try! Realm()
+                if let users = realm.resolve(users) {
+                    print("Cross-Thread Object:")
+                    print("\tUsers: \(users.count)")
+                }
+            }
+            
+            do {
+                autoreleasepool {
+                    let realm = try! Realm()
+                    let users = realm.objects(User.self)
+                    print("From Background:")
+                    print("\tUsers: \(users.count)")
+                }
+            }
+        }
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
