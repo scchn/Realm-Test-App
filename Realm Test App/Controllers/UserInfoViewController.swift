@@ -44,8 +44,8 @@ class UserInfoViewController: NSViewController {
     // MARK: - Actions
     
     @IBAction func stepperAction(_ sender: NSStepper) {
-        try! sharedRealm.write {
-            userInfo?.number = sender.integerValue
+        try! mainRealm.write {
+            userInfo.number = sender.integerValue
         }
     }
     

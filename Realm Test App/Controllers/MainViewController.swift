@@ -29,7 +29,7 @@ class MainViewController: NSViewController {
     }
     
     private func setupDB() {
-        notiToken = sharedRealm.objects(User.self)
+        notiToken = mainRealm.objects(User.self)
             .observe { [weak self] change in
                 guard let self = self else { return }
                 
@@ -54,14 +54,14 @@ class MainViewController: NSViewController {
     }
     
     private func addUser(_ user: User) {
-        try! sharedRealm.write {
-            sharedRealm.add(user)
+        try! mainRealm.write {
+            mainRealm.add(user)
         }
     }
     
     private func deleteUsers(_ users: [User]) {
-        try! sharedRealm.write {
-            sharedRealm.delete(users)
+        try! mainRealm.write {
+            mainRealm.delete(users)
         }
     }
     
@@ -89,7 +89,7 @@ class MainViewController: NSViewController {
     }
     
     @IBAction func realmButtonAction(_ sender: Any) {
-        guard let realmFileURL = sharedRealm.configuration.fileURL else { return }
+        guard let realmFileURL = mainRealm.configuration.fileURL else { return }
         NSWorkspace.shared.activateFileViewerSelecting([realmFileURL])
     }
     

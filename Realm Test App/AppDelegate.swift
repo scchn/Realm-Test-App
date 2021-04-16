@@ -21,20 +21,52 @@ fileprivate let migrationBlock: MigrationBlock = { migration, oldVersion in
     print("done!")
 }
 
-let sharedRealm: Realm = {
+#if COMPACTION_CONDITIONAL
+fileprivate let compactionBlock: (Int, Int) -> Bool = { total, used in
+    let total = Double(total), used = Double(used)
+    let max = Double(10) * 1024 * 1024
+    let p = used / total
+    print("Realm file size = \(total) Bytes")
+    print("Data size       = \(used) Bytes")
+    print("\t\(p * 100)%")
+    return total > max && p < 0.5
+}
+#endif
+
+let mainRealm: Realm = {
     let defaultURL = Realm.Configuration.defaultConfiguration.fileURL!
-    let dstURL = defaultURL.deletingLastPathComponent()
-        .appendingPathComponent("default")
-        .appendingPathExtension("realm")
-    let srcURL = Bundle.main.url(forResource: "default-v0", withExtension: "realm")!
+    let templateURL = Bundle.main.url(forResource: "default-v0", withExtension: "realm")!
     
     #if RESET_DB
-    try? FileManager.default.removeItem(at: dstURL)
+    try? FileManager.default.removeItem(at: defaultURL)
     #endif
     
-    try? FileManager.default.copyItem(at: srcURL, to: dstURL)
+    // Copy if needed
+    try? FileManager.default.copyItem(at: templateURL, to: defaultURL)
     
+    #if COMPACTION_CONDITIONAL
+    let config = Realm.Configuration(
+        schemaVersion: schemaVersion,
+        migrationBlock: migrationBlock,
+        shouldCompactOnLaunch: compactionBlock
+    )
+    #elseif COMPACTION_EVERYTIME
     let config = Realm.Configuration(schemaVersion: schemaVersion, migrationBlock: migrationBlock)
+    let compactedURL = defaultURL
+        .deletingLastPathComponent()
+        .appendingPathComponent("default-compact")
+        .appendingPathExtension("realm")
+
+    autoreleasepool {
+        let realm = try! Realm(configuration: config)
+        try! realm.writeCopy(toFile: compactedURL)
+    }
+    
+    try! FileManager.default.removeItem(at: defaultURL)
+    try! FileManager.default.moveItem(at: compactedURL, to: defaultURL)
+    #else
+    let config = Realm.Configuration(schemaVersion: schemaVersion, migrationBlock: migrationBlock)
+    #endif
     
     return try! Realm(configuration: config)
 }()
