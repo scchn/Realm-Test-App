@@ -9,16 +9,20 @@ import Cocoa
 
 import RealmSwift
 
-fileprivate let schemaVersion: UInt64 = 1
+fileprivate let schemaVersion: UInt64 = 2
 
 fileprivate let migrationBlock: MigrationBlock = { migration, oldVersion in
-    print("Migrating...", terminator: "")
+    print("Schema Version: \(schemaVersion)")
+    print("\tMigrating...", terminator: "")
     if oldVersion < 1 {
         migration.enumerateObjects(ofType: User.className()) { old, new in
             new?["info"] = UserInfo()
         }
     }
-    print("done!")
+    if oldVersion < 2 {
+        migration.renameProperty(onType: User.className(), from: "id", to: "userID")
+    }
+    print("done")
 }
 
 #if COMPACTION_CONDITIONAL
